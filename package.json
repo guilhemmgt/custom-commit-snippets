@@ -1,0 +1,106 @@
+{
+  "name": "custom-commit-snippets",
+  "displayName": "Custom Commit Snippets",
+  "description": "Custom git commit messages snippets.",
+  "version": "0.0.1",
+  "publisher": "guilhemmgt",
+  "categories": [
+    "Snippets"
+  ],
+  "activationEvents": [
+    "onLanguage:git-commit"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "properties": {
+        "customCommitSnippets.items": {
+          "type": "array",
+          "description": "List of commit snippet items",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The snippet prefix: what to type for the snippet to be suggested."
+              },
+              "content": {
+                "type": "string",
+                "description": "The snippet body basis: what will be generated is '<content>:' or '<content>():'."
+              },
+              "description": {
+                "type": "string",
+                "description": "The snippet description: what will appear in suggestions. Optional."
+              },
+              "scope": {
+                "type": "boolean",
+                "description": "If 'true', a scope variant will be added to the snippets. Defaults to 'true'."
+              }
+            },
+            "required": ["name", "content"]
+          },
+          "default": [
+            {
+              "name": "feat",
+              "content": "✨feat",
+              "description": "✨Introduce new features"
+            },
+            {
+              "name": "fix",
+              "content": "🐛fix",
+              "description": "🐛Patche a bug"
+            },
+            {
+              "name": "docs",
+              "content": "📝docs",
+              "description": "📝Add or update documentation"
+            },
+            {
+              "name": "style",
+              "content": "🎨style",
+              "description": "🎨Improve structure/format of the code without changing the logic"
+            },
+            {
+              "name": "refactor",
+              "content": "♻️refactor",
+              "description": "♻️Modify the code without adding new features or fixing bugs"
+            },
+            {
+              "name": "test",
+              "content": "✅test",
+              "description": "✅Add or modify tests"
+            },
+            {
+              "name": "chore",
+              "content": "👷‍♂️chore",
+              "description": "👷‍♂️Update build tasks, CI configurations, and other non-production code changes"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "engines": {
+    "vscode": "^1.101.0"
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.101.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@typescript-eslint/eslint-plugin": "^8.31.1",
+    "@typescript-eslint/parser": "^8.31.1",
+    "eslint": "^9.25.1",
+    "typescript": "^5.8.3",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.5.2"
+  }
+}
