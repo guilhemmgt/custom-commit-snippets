@@ -1,0 +1,9 @@
+[
+{ "name": "feat",       "content": "feat",      "description": "✨Introduce new features" },
+{ "name": "fix",        "content": "fix",       "description": "🐛Patche a bug" },
+{ "name": "docs",       "content": "docs",      "description": "📝Add or update documentation" },
+{ "name": "style",      "content": "style",     "description": "🎨Improve structure/format of the code without changing the logic" },
+{ "name": "refactor",   "content": "refactor",  "description": "♻️Modify the code without adding new features or fixing bugs" },
+{ "name": "test",       "content": "test",      "description": "✅Add or modify tests" },
+{ "name": "chore",      "content": "chore",     "description": "👷‍♂️Update build tasks, CI configurations, and other non-production code changes" }
+]
