@@ -105,14 +105,22 @@ async function loadSnippets(context: vscode.ExtensionContext) {
 					for (const entry of snippets) {
 						const completion = new vscode.CompletionItem(entry.description, vscode.CompletionItemKind.Snippet);
 						completion.insertText = new vscode.SnippetString(`${entry.content}: $1`);
-						completion.label = `${entry.name}`;
+						completion.label = entry.name || entry.description;
 						completion.documentation = entry.description;
+						if (!entry.name) {
+							completion.filterText = entry.description;
+							completion.sortText = entry.description;
+						}
 						completions.push(completion);
 
 						const completionWithScope = new vscode.CompletionItem(entry.description, vscode.CompletionItemKind.Snippet);
 						completionWithScope.insertText = new vscode.SnippetString(`${entry.content}($1): `);
-						completionWithScope.label = `${entry.name}()`;
+						completionWithScope.label = `${entry.name || entry.description}()`;
 						completionWithScope.documentation = entry.description;
+						if (!entry.name) {
+							completionWithScope.filterText = entry.description;
+							completionWithScope.sortText = entry.description;
+						}
 						completions.push(completionWithScope);
 					}
 					return completions;
