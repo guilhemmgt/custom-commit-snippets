@@ -4,9 +4,13 @@
   "description": "Custom git commit messages snippets.",
   "version": "1.0.0",
   "publisher": "guilhemmgt",
-  "categories": [
-    "Snippets"
-  ],
+  "repository": "https://github.com/guilhemmgt/custom-commit-snippets",
+  "bugs": "https://github.com/guilhemmgt/custom-commit-snippets/issues",
+  "keywords": ["git", "commit", "git-commit", "snippet", "snippets"],
+  "engines": {
+    "vscode": "^1.10.0"
+  },
+  "categories": [ "Snippets" ],
   "activationEvents": [
     "onLanguage:git-commit",
     "onCommand:customCommitSnippets._openSnippetsFolder"
@@ -50,9 +54,6 @@
         }
       }
     }
-  },
-  "engines": {
-    "vscode": "^1.101.0"
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
