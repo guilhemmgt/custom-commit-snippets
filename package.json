@@ -15,26 +15,26 @@
   "contributes": {
     "commands": [
       {
-        "command": "customCommitSnippets.selectPreset",
-        "title": "Custom Commit Snippets: Select active preset"
+        "command": "customCommitSnippets.selectFile",
+        "title": "Custom Commit Snippets: Select active snippets file"
       },
       {
         "command": "customCommitSnippets.resetDefaultPresets",
-        "title": "Custom Commit Snippets: Reset default presets"
+        "title": "Custom Commit Snippets: Reset presets snippets files to their default content"
       },
       {
-        "command": "customCommitSnippets.editPreset",
-        "title": "Custom Commit Snippets: Edit a preset"
+        "command": "customCommitSnippets.editFile",
+        "title": "Custom Commit Snippets: Edit a snippets file"
       }
     ],
     "configuration": {
       "type": "object",
       "title": "Custom Commit Snippets",
       "properties": {
-        "customCommitSnippets.activePreset": {
+        "customCommitSnippets.activeFile": {
           "type": "string",
           "default": "conventional",
-          "description": "The commit snippet preset to use."
+          "description": "The snippets file to use."
         }
       }
     }

@@ -1,105 +1,108 @@
 import path from 'path';
-import fs, { watch } from 'fs';
+import fs from 'fs';
 import * as vscode from 'vscode';
 
+/** Completion provider used to updates snippets. */
 let completionProvider: vscode.Disposable | undefined;
-let entries: SnippetEntry[] = [];
+/** Currently loaded snippets. */
+let snippets: Snippet[] = [];
 
-interface SnippetEntry {
+interface Snippet {
 	name: string;
 	content: string;
 	description: string;
 }
 
 export async function activate(context: vscode.ExtensionContext) {
-	// on its very first activation, initialize the extension by creating the default presets
+	// on its very first activation, initialize the extension by creating snippets files corresponding to the presets
 	const alreadyInitialized = context.globalState.get<boolean>('customCommitSnippets.initialized');
 	if (!alreadyInitialized) {
 		await resetDefaultPresets(context);
 		await context.globalState.update('customCommitSnippets.initialized', true);
 	}
 
-	// on activation, register the active preset
-	await registerSnippets(context);
+	// on activation...
+	await loadSnippets(context);
 
-	// create a watcher to watch changes to preset files
-	await watchPresetChanges(context);
+	// create a watcher to watch changes to snippets files
+	{
+		const snippetsFilesFolder = await getGlobalSnippetsFilesFolder(context);
+		const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(snippetsFilesFolder, '*.json'));
+		const onChange = async () => {
+			await loadSnippets(context);
+		};
+		watcher.onDidChange(onChange);
+		watcher.onDidCreate(onChange);
+		context.subscriptions.push(watcher);
+	}
 
-	// when the active preset is updated, register the active preset
+	// when the active snippets file is updated, load it 
 	vscode.workspace.onDidChangeConfiguration(async e => {
-		if (e.affectsConfiguration('customCommitSnippets.activePreset')) {
-			await registerSnippets(context);
+		if (e.affectsConfiguration('customCommitSnippets.activeFile')) {
+			await loadSnippets(context);
 		}
 	});
 
-	// commands
+	// command: resetDefaultPresets
 	context.subscriptions.push(
 		vscode.commands.registerCommand('customCommitSnippets.resetDefaultPresets', async () => {
 			await resetDefaultPresets(context);
 			vscode.window.showInformationMessage('Default presets have been reset.');
 		})
 	);
+	// command: selectFile
 	context.subscriptions.push(
-		vscode.commands.registerCommand('customCommitSnippets.selectPreset', async () => {
-			const selected = await promptPresetSelection(context);
+		vscode.commands.registerCommand('customCommitSnippets.selectFile', async () => {
+			const selected = await promptSnippetsFileSelection(context);
 			if (!selected)
 				return;
-			await vscode.workspace.getConfiguration('customCommitSnippets').update('activePreset', selected, vscode.ConfigurationTarget.Global);
-			vscode.window.showInformationMessage(`Active preset set to "${selected}"`);
+			await vscode.workspace.getConfiguration('customCommitSnippets').update('activeFile', selected, vscode.ConfigurationTarget.Global);
+			vscode.window.showInformationMessage(`Active snippets file set to "${selected}"`);
 		})
 	);
+	// command: editFile
 	context.subscriptions.push(
-		vscode.commands.registerCommand('customCommitSnippets.editPreset', async () => {
-			const selected = await promptPresetSelection(context);
+		vscode.commands.registerCommand('customCommitSnippets.editFile', async () => {
+			const selected = await promptSnippetsFileSelection(context);
 			if (!selected)
 				return;
-			const presetPath = path.join(await getGlobalPresetsFolder(context), `${selected}.json`);
-			if (!fs.existsSync(presetPath))
-				vscode.window.showErrorMessage(`Could not open preset "${selected}.json".`);
-			const presetUri = vscode.Uri.file(presetPath);
-			await vscode.window.showTextDocument(presetUri);
+			const filePath = path.join(await getGlobalSnippetsFilesFolder(context), `${selected}.json`);
+			if (!fs.existsSync(filePath))
+				vscode.window.showErrorMessage(`Could not open snippets file "${selected}.json".`);
+			const fileUri = vscode.Uri.file(filePath);
+			await vscode.window.showTextDocument(fileUri);
 		})
 	);
 }
 
-async function watchPresetChanges(context: vscode.ExtensionContext) {
-	const presetsFolder = await getGlobalPresetsFolder(context);
-	const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(presetsFolder, '*.json'));
+/** Displays a 'quick pick' prompting the user to select a snippets file. */
+async function promptSnippetsFileSelection(context: vscode.ExtensionContext): Promise<string | undefined> {
+	const snippetsFilesFolder = await getGlobalSnippetsFilesFolder(context);
+	const filesNames = fs.readdirSync(snippetsFilesFolder).filter(f => f.endsWith('.json')).map(f => path.basename(f, '.json'));
 
-	const onChange = async () => {
-		await registerSnippets(context);
-	};
-
-	watcher.onDidChange(onChange);
-	watcher.onDidCreate(onChange);
-
-	context.subscriptions.push(watcher);
+	return await vscode.window.showQuickPick(filesNames, { placeHolder: "Select a snippets file to use..." });
 }
 
-async function promptPresetSelection(context: vscode.ExtensionContext): Promise<string | undefined> {
-	const presetsFolder = await getGlobalPresetsFolder(context);
-	const presetsNames = fs.readdirSync(presetsFolder).filter(f => f.endsWith('.json')).map(f => path.basename(f, '.json'));
-
-	return await vscode.window.showQuickPick(presetsNames, { placeHolder: "Select a commit snippet preset" });
-}
-
-async function registerSnippets(context: vscode.ExtensionContext) {
+/** Loads the snippets from the currently active file. Defaults to 'conventional'. */
+async function loadSnippets(context: vscode.ExtensionContext) {
 	const config = vscode.workspace.getConfiguration('customCommitSnippets');
-	const activePreset = config.get<string>('activePreset') || 'conventional';
-	
+	const activeFile = config.get<string>('activeFile') || 'conventional';
+
+	// loads the active file
 	try {
-		entries = await getPreset(context, activePreset);
+		snippets = await getSnippets(context, activeFile);
 	} catch (e) {
-		vscode.window.showErrorMessage(`Failed to load preset "${activePreset}": ${e}`);
+		vscode.window.showErrorMessage(`Failed to load snippets file "${activeFile}": ${e}.`);
 	}
 
+	// initialize the provider (only once per activation)
 	if (!completionProvider) {
 		completionProvider = vscode.languages.registerCompletionItemProvider(
 			{ language: 'git-commit' },
 			{
 				provideCompletionItems() {
 					const completions: vscode.CompletionItem[] = [];
-					for (const entry of entries) {
+					for (const entry of snippets) {
 						const completion = new vscode.CompletionItem(entry.description, vscode.CompletionItemKind.Snippet);
 						completion.insertText = new vscode.SnippetString(`${entry.content}: $1`);
 						completion.label = `${entry.name}`;
@@ -120,34 +123,37 @@ async function registerSnippets(context: vscode.ExtensionContext) {
 	}
 }
 
+/** Resets (writes or overwrites) the snippets files corresponding to the default presets bundled with this extension. */
 async function resetDefaultPresets(context: vscode.ExtensionContext) {
 	const defaultPresetsFolderUri = vscode.Uri.joinPath(context.extensionUri, 'presets');
 	const defaultPresetsFiles = await vscode.workspace.fs.readDirectory(defaultPresetsFolderUri);
-	const globalPresetsFolderPath = await getGlobalPresetsFolder(context);
+	const snippetsFilesFolderPath = await getGlobalSnippetsFilesFolder(context);
 
 	for (const [fileName, fileType] of defaultPresetsFiles) {
 		if (fileType !== vscode.FileType.File || !fileName.endsWith('.json'))
 			continue;
 		const src = vscode.Uri.joinPath(defaultPresetsFolderUri, fileName);
-		const dest = path.join(globalPresetsFolderPath, fileName);
+		const dest = path.join(snippetsFilesFolderPath, fileName);
 		const srcContent = await vscode.workspace.fs.readFile(src);
 		await fs.promises.writeFile(dest, Buffer.from(srcContent));
 	}
 }
 
-async function getPreset(context: vscode.ExtensionContext, presetName: string): Promise<SnippetEntry[]> {
-	const folderPath = await getGlobalPresetsFolder(context);
-	const presetPath = path.join(folderPath, `${presetName}.json`);
-	if (!fs.existsSync(presetPath))
+/** Gets snippets from a snippets file. */
+async function getSnippets(context: vscode.ExtensionContext, fileName: string): Promise<Snippet[]> {
+	const folderPath = await getGlobalSnippetsFilesFolder(context);
+	const filepath = path.join(folderPath, `${fileName}.json`);
+	if (!fs.existsSync(filepath))
 		return [];
-	const content = await fs.promises.readFile(presetPath, 'utf8');
-	return JSON.parse(content) as SnippetEntry[];
+	const content = await fs.promises.readFile(filepath, 'utf8');
+	return JSON.parse(content) as Snippet[];
 }
 
-async function getGlobalPresetsFolder(context: vscode.ExtensionContext): Promise<string> {
-	const presetsFolder = path.join(context.globalStorageUri.fsPath, 'presets');
-	if (!fs.existsSync(presetsFolder)) {
-		await fs.promises.mkdir(presetsFolder, { recursive: true });
+/** Returns the path to the folder containing the snippets files in the globalStorage. Creates it if necessary. */
+async function getGlobalSnippetsFilesFolder(context: vscode.ExtensionContext): Promise<string> {
+	const snippetsFilesFolder = path.join(context.globalStorageUri.fsPath, 'snippetsFiles');
+	if (!fs.existsSync(snippetsFilesFolder)) {
+		await fs.promises.mkdir(snippetsFilesFolder, { recursive: true });
 	}
-	return presetsFolder;
+	return snippetsFilesFolder;
 }
