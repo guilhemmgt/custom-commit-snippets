@@ -2,10 +2,11 @@
   "name": "custom-commit-snippets",
   "displayName": "Custom Commit Snippets",
   "description": "Custom git commit messages snippets.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "publisher": "guilhemmgt",
   "repository": "https://github.com/guilhemmgt/custom-commit-snippets",
   "bugs": "https://github.com/guilhemmgt/custom-commit-snippets/issues",
+  "icon": "./imgs/icon.png",
   "keywords": ["git", "commit", "git-commit", "snippet", "snippets"],
   "engines": {
     "vscode": "^1.10.0"
@@ -16,7 +17,7 @@
     "onCommand:customCommitSnippets._openSnippetsFolder"
   ],
   "main": "./out/extension.js",
-  "files": [ "presets/", "schemas/", "out/" ],
+  "files": [ "presets/", "schemas/", "out/", "imgs/" ],
   "contributes": {
     "jsonValidation": [
       {
