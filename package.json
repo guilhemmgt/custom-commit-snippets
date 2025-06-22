@@ -13,13 +13,26 @@
   "main": "./out/extension.js",
   "files": [ "presets/" ],
   "contributes": {
+    "commands": [
+      {
+        "command": "customCommitSnippets.selectPreset",
+        "title": "Custom Commit Snippets: Select active preset"
+      },
+      {
+        "command": "customCommitSnippets.resetDefaultPresets",
+        "title": "Custom Commit Snippets: Reset default presets"
+      },
+      {
+        "command": "customCommitSnippets.editPreset",
+        "title": "Custom Commit Snippets: Edit a preset"
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "Custom Commit Snippets",
       "properties": {
         "customCommitSnippets.activePreset": {
           "type": "string",
-          "enum": ["conventional", "conventionalWithEmojis", "gitmoji"],
           "default": "conventional",
           "description": "The commit snippet preset to use."
         }
