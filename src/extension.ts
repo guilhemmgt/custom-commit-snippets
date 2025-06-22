@@ -43,6 +43,13 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+	// when the active snippets file is updated, load it 
+	vscode.workspace.onDidChangeConfiguration(async e => {
+		if (e.affectsConfiguration('customCommitSnippets.scopeVariants')) {
+			await loadSnippets(context);
+		}
+	});
+
 	// command: resetDefaultPresets
 	context.subscriptions.push(
 		vscode.commands.registerCommand('customCommitSnippets.resetDefaultPresets', async () => {
@@ -85,8 +92,7 @@ async function promptSnippetsFileSelection(context: vscode.ExtensionContext): Pr
 
 /** Loads the snippets from the currently active file. Defaults to 'conventional'. */
 async function loadSnippets(context: vscode.ExtensionContext) {
-	const config = vscode.workspace.getConfiguration('customCommitSnippets');
-	const activeFile = config.get<string>('activeFile') || 'conventional';
+	const activeFile = vscode.workspace.getConfiguration('customCommitSnippets').get<string>('activeFile') || 'conventional';
 
 	// loads the active file
 	try {
@@ -113,15 +119,17 @@ async function loadSnippets(context: vscode.ExtensionContext) {
 						}
 						completions.push(completion);
 
-						const completionWithScope = new vscode.CompletionItem(entry.description, vscode.CompletionItemKind.Snippet);
-						completionWithScope.insertText = new vscode.SnippetString(`${entry.content}($1): `);
-						completionWithScope.label = `${entry.name || entry.description}()`;
-						completionWithScope.documentation = entry.description;
-						if (!entry.name) {
-							completionWithScope.filterText = entry.description;
-							completionWithScope.sortText = entry.description;
+						if (vscode.workspace.getConfiguration('customCommitSnippets').get<boolean>('scopeVariants', true)) {
+							const completionWithScope = new vscode.CompletionItem(entry.description, vscode.CompletionItemKind.Snippet);
+							completionWithScope.insertText = new vscode.SnippetString(`${entry.content}($1): `);
+							completionWithScope.label = `${entry.name || entry.description}()`;
+							completionWithScope.documentation = entry.description;
+							if (!entry.name) {
+								completionWithScope.filterText = entry.description;
+								completionWithScope.sortText = entry.description;
+							}
+							completions.push(completionWithScope);
 						}
-						completions.push(completionWithScope);
 					}
 					return completions;
 				}

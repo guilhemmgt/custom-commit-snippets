@@ -34,7 +34,12 @@
         "customCommitSnippets.activeFile": {
           "type": "string",
           "default": "conventional",
-          "description": "The snippets file to use."
+          "description": "The snippets file to use. You can set it manually here, or use the customCommitSnippets.selectFile command."
+        },
+        "customCommitSnippets.scopeVariants": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include scope variants for each snippet."
         }
       }
     }
