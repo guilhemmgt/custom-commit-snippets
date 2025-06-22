@@ -80,6 +80,14 @@ export async function activate(context: vscode.ExtensionContext) {
 			await vscode.window.showTextDocument(fileUri);
 		})
 	);
+	// command: openSnippetsFolder
+	context.subscriptions.push(
+		vscode.commands.registerCommand('customCommitSnippets._openSnippetsFolder', async () => {
+			const snippetsFolder = await getGlobalSnippetsFilesFolder(context);
+			const uri = vscode.Uri.file(snippetsFolder);
+			vscode.env.openExternal(uri);
+		})
+	);
 }
 
 /** Displays a 'quick pick' prompting the user to select a snippets file. */
@@ -102,7 +110,7 @@ async function promptSnippetsFileSelection(context: vscode.ExtensionContext): Pr
 				return null;
 			}
 		});
-		if(!input)
+		if (!input)
 			return;
 
 		// create file
@@ -110,7 +118,7 @@ async function promptSnippetsFileSelection(context: vscode.ExtensionContext): Pr
 		await fs.promises.writeFile(newFilePath, '[\n\n]\n', 'utf8');
 		// open file + position cursor
 		const editor = await vscode.window.showTextDocument(vscode.Uri.file(newFilePath));
-		const position = new vscode.Position(1,0);
+		const position = new vscode.Position(1, 0);
 		editor.selection = new vscode.Selection(position, position);
 
 		return input;

@@ -8,7 +8,8 @@
     "Snippets"
   ],
   "activationEvents": [
-    "onLanguage:git-commit"
+    "onLanguage:git-commit",
+    "onCommand:customCommitSnippets._openSnippetsFolder"
   ],
   "main": "./out/extension.js",
   "files": [ "presets/" ],
@@ -34,7 +35,7 @@
         "customCommitSnippets.activeFile": {
           "type": "string",
           "default": "conventional",
-          "description": "The snippets file to use. You can set it manually here, or use the customCommitSnippets.selectFile command."
+          "markdownDescription": "The snippets file to use. You can set it manually here, or use the customCommitSnippets.selectFile command. [Click here to open the snippets folder](command:customCommitSnippets._openSnippetsFolder)."
         },
         "customCommitSnippets.scopeVariants": {
           "type": "boolean",
