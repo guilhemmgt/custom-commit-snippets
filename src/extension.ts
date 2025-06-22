@@ -86,8 +86,37 @@ export async function activate(context: vscode.ExtensionContext) {
 async function promptSnippetsFileSelection(context: vscode.ExtensionContext): Promise<string | undefined> {
 	const snippetsFilesFolder = await getGlobalSnippetsFilesFolder(context);
 	const filesNames = fs.readdirSync(snippetsFilesFolder).filter(f => f.endsWith('.json')).map(f => path.basename(f, '.json'));
+	const newFileOption = `$(new-file) Create new snippets file...`;
 
-	return await vscode.window.showQuickPick(filesNames, { placeHolder: "Select a snippets file to use..." });
+	const selected = await vscode.window.showQuickPick([...filesNames, newFileOption], { placeHolder: "Select a snippets file to use..." });
+	if (!selected)
+		return;
+
+	if (selected === newFileOption) {
+		const input = await vscode.window.showInputBox({
+			prompt: 'Name your new snippets file:',
+			validateInput: value => {
+				if (!value || value.trim() === '') return 'Filename cannot be empty';
+				if (!/^[\w\-]+$/.test(value)) return 'Only letters, numbers, underscores and dashes allowed';
+				if (filesNames.includes(value)) return 'File already exists';
+				return null;
+			}
+		});
+		if(!input)
+			return;
+
+		// create file
+		const newFilePath = path.join(snippetsFilesFolder, `${input}.json`);
+		await fs.promises.writeFile(newFilePath, '[\n\n]\n', 'utf8');
+		// open file + position cursor
+		const editor = await vscode.window.showTextDocument(vscode.Uri.file(newFilePath));
+		const position = new vscode.Position(1,0);
+		editor.selection = new vscode.Selection(position, position);
+
+		return input;
+	}
+
+	return selected;
 }
 
 /** Loads the snippets from the currently active file. Defaults to 'conventional'. */
