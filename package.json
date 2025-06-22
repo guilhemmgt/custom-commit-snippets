@@ -12,8 +12,14 @@
     "onCommand:customCommitSnippets._openSnippetsFolder"
   ],
   "main": "./out/extension.js",
-  "files": [ "presets/" ],
+  "files": [ "presets/", "schemas/" ],
   "contributes": {
+    "jsonValidation": [
+      {
+        "fileMatch": ["**/guilhemmgt.custom-commit-snippets/snippetsFiles/*.json"],
+        "url": "./schemas/snippets.schema.json"
+      }
+    ],
     "commands": [
       {
         "command": "customCommitSnippets.selectFile",

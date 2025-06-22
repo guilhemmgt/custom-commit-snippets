@@ -1,0 +1,22 @@
+{
+    "type": "array",
+    "items": {
+        "type": "object",
+        "required": [ "content" ],
+        "properties": {
+            "name": {
+                "type": "string",
+                "description": "The snippet's label and suggestion prefix. If not specified, 'description' will be used instead, and then 'content'."
+            },
+            "content": {
+                "type": "string",
+                "description": "The snippet's body will be '<content>: ' or '<content>(): '."
+            },
+            "description": {
+                "type": "string",
+                "description": "A description that will appear next to this snippet's suggestion."
+            }
+        },
+        "additionalProperties": false
+    }
+}
