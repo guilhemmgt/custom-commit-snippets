@@ -12,3 +12,6 @@ Snippets presets (like [Gitmoji](https://gitmoji.dev) and [Conventional Commit](
 
 ## Issues
 Feel free to submit bugs or suggestions on the [GitHub issues page](https://github.com/guilhemmgt/custom-commit-snippets/issues).
+
+## Installation
+Install [Custom Commit Snippets](https://marketplace.visualstudio.com/items?itemName=guilhemmgt.custom-commit-snippets) from the VSCode Marketplace, or from the Extensions tab in VSCode.
