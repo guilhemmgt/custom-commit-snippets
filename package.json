@@ -2,7 +2,7 @@
   "name": "custom-commit-snippets",
   "displayName": "Custom Commit Snippets",
   "description": "Custom git commit messages snippets.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "publisher": "guilhemmgt",
   "repository": "https://github.com/guilhemmgt/custom-commit-snippets",
   "bugs": "https://github.com/guilhemmgt/custom-commit-snippets/issues",
