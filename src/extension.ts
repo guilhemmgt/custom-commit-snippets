@@ -146,25 +146,24 @@ async function loadSnippets(context: vscode.ExtensionContext) {
 				provideCompletionItems() {
 					const completions: vscode.CompletionItem[] = [];
 					for (const entry of snippets) {
+						const entryMain = entry.name || entry.description || entry.content;
+						const sanitizedEntryMain = entryMain.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
+
 						const completion = new vscode.CompletionItem(entry.description, vscode.CompletionItemKind.Snippet);
 						completion.insertText = new vscode.SnippetString(`${entry.content}: $1`);
-						completion.label = entry.name || entry.description || entry.content;
+						completion.label = entryMain;
 						completion.documentation = entry.description;
-						if (!entry.name) {
-							completion.filterText = entry.description || entry.content;
-							completion.sortText = entry.description || entry.content;
-						}
+						completion.filterText = sanitizedEntryMain;
+						completion.sortText = sanitizedEntryMain;
 						completions.push(completion);
 
 						if (vscode.workspace.getConfiguration('customCommitSnippets').get<boolean>('scopeVariants', true)) {
 							const completionWithScope = new vscode.CompletionItem(entry.description, vscode.CompletionItemKind.Snippet);
 							completionWithScope.insertText = new vscode.SnippetString(`${entry.content}($1): `);
-							completionWithScope.label = `${entry.name || entry.description || entry.content}()`;
+							completionWithScope.label = `${entryMain}()`;
 							completionWithScope.documentation = entry.description;
-							if (!entry.name) {
-								completionWithScope.filterText = entry.description || entry.content;
-								completionWithScope.sortText = entry.description || entry.content;
-							}
+							completionWithScope.filterText = sanitizedEntryMain;
+							completionWithScope.sortText = sanitizedEntryMain;
 							completions.push(completionWithScope);
 						}
 					}
