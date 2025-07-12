@@ -147,7 +147,10 @@ async function loadSnippets(context: vscode.ExtensionContext) {
 					const completions: vscode.CompletionItem[] = [];
 					for (const entry of snippets) {
 						const entryMain = entry.name || entry.description || entry.content;
-						const sanitizedEntryMain = entryMain.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
+						let sanitizedEntryMain = entryMain.replace(/\p{Emoji_Modifier_Base}\p{Emoji_Modifier}?\uFE0F?|\p{Emoji_Presentation}\uFE0F?|\p{Emoji}\uFE0F?/gu, '');
+						sanitizedEntryMain = sanitizedEntryMain.replace(/\u65039/, '');
+
+						console.log(sanitizedEntryMain, sanitizedEntryMain.charCodeAt(0), 'revert'.charCodeAt(0));
 
 						const completion = new vscode.CompletionItem(entry.description, vscode.CompletionItemKind.Snippet);
 						completion.insertText = new vscode.SnippetString(`${entry.content}: $1`);
